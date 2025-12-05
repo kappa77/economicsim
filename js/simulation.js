@@ -154,11 +154,13 @@ class BarGraphRenderer {
         const barWidth = this.canvas.width / summaryData.length;
         const maxLog = Math.log(maxMoney + 1);
 
+        const colors = ['blue', 'green', 'red', 'purple', 'orange'];
+
         for (let i = 0; i < summaryData.length; i++) {
             const barHeight = maxLog > 0 ? (Math.log(summaryData[i].money + 1) / maxLog) * (this.canvas.height - 20) : 0;
-            this.ctx.fillStyle = 'blue';
+            this.ctx.fillStyle = colors[i % colors.length];
             this.ctx.fillRect(i * barWidth + 5, this.canvas.height - barHeight - 20, barWidth - 10, barHeight);
-            this.ctx.fillStyle = 'black';
+            this.ctx.fillStyle = '#FFFFFF';
             this.ctx.textAlign = 'center';
             this.ctx.fillText(summaryData[i].label, i * barWidth + barWidth / 2, this.canvas.height - 5);
         }
