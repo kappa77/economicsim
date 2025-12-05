@@ -179,7 +179,8 @@ class TemporalGraphRenderer {
         }
 
         const allMoney = history.flat().map(d => d.money);
-        const maxMoney = Math.max(...allMoney)  || 1;
+        const maxMoney = Math.max(...allMoney) || 1;
+        const maxLog = Math.log(maxMoney + 1);
 
         const colors = ['blue', 'green', 'red', 'purple', 'orange'];
         const labels = history[0].map(d => d.label);
@@ -189,7 +190,7 @@ class TemporalGraphRenderer {
             this.ctx.beginPath();
             for (let j = 0; j < history.length; j++) {
                 const x = (j / (history.length - 1)) * (this.canvas.width - 80);
-                const y = this.canvas.height - (history[j][i].money / maxMoney) * this.canvas.height;
+                const y = this.canvas.height - (Math.log(history[j][i].money + 1) / maxLog) * this.canvas.height;
                 if (j === 0) {
                     this.ctx.moveTo(x, y);
                 } else {
@@ -220,6 +221,7 @@ class Simulation {
         this.graphRenderer = new BarGraphRenderer('summary-graph');
         this.temporalGraphRenderer = new TemporalGraphRenderer('temporal-graph');
         this.history = [];
+        this.taxRate = 0.1;
 
         this._initializeActors();
         this.updateUI();
@@ -232,10 +234,14 @@ class Simulation {
         this.governments = [];
         this.utilityProviders = [];
 
-        for (let i = 0; i < 10; i++) {
+        const numCitizens = parseInt(document.getElementById('num-citizens').value, 10);
+        const numCompanies = parseInt(document.getElementById('num-companies').value, 10);
+        this.taxRate = parseFloat(document.getElementById('tax-rate').value);
+
+        for (let i = 0; i < numCitizens; i++) {
             this.citizens.push(new Citizen(i));
         }
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < numCompanies; i++) {
             this.companies.push(new Company(i));
         }
         this.banks.push(new Bank(0));
@@ -277,11 +283,11 @@ class Simulation {
         if(this.banks.length > 0) this.banks[0].collectInterest();
         if(this.governments.length > 0) {
             const government = this.governments[0];
-            this.citizens.forEach(c => government.tax(c, 0.1));
+            this.citizens.forEach(c => government.tax(c, this.taxRate));
 
             if (this.turn > 0 && this.turn % 10 === 0) {
                 this.companies.forEach(c => {
-                    government.tax_company(c, 0.15);
+                    government.tax_company(c, this.taxRate + 0.05);
                     c.money_in = 0;
                     c.money_out = 0;
                 });
@@ -316,32 +322,31 @@ class Simulation {
         let html = `<h2>Turn: ${this.turn}</h2>`;
 
         html += '<h3>Citizens</h3>';
-        html += '<ul>';
+        html += '<table><thead><tr><th>ID</th><th>Money</th><th>Employer</th></tr></thead><tbody>';
         this.citizens.forEach(c => {
-            html += `<li>ID: ${c.id}, Money: ${c.money.toFixed(2)}, Employer: ${c.employer ? c.employer.id : 'None'}</li>`;
+            html += `<tr><td>${c.id}</td><td>${c.money.toFixed(2)}</td><td>${c.employer ? c.employer.id : 'None'}</td></tr>`;
         });
-        html += '</ul>';
+        html += '</tbody></table>';
 
         html += '<h3>Companies</h3>';
-        html += '<ul>';
+        html += '<table><thead><tr><th>ID</th><th>Money</th><th>Employees</th><th>Inventory</th></tr></thead><tbody>';
         this.companies.forEach(c => {
-            html += `<li>ID: ${c.id}, Money: ${c.money.toFixed(2)}, Employees: ${c.employees.length}, Inventory: ${c.inventory}</li>`;
+            html += `<tr><td>${c.id}</td><td>${c.money.toFixed(2)}</td><td>${c.employees.length}</td><td>${c.inventory}</td></tr>`;
         });
-        html += '</ul>';
+        html += '</tbody></table>';
 
         html += '<h3>Other Actors</h3>';
-        html += '<ul>';
+        html += '<table><thead><tr><th>Actor</th><th>ID</th><th>Money</th></tr></thead><tbody>';
         this.banks.forEach(b => {
-            html += `<li>Bank ID: ${b.id}, Money: ${b.money.toFixed(2)}</li>`;
+            html += `<tr><td>Bank</td><td>${b.id}</td><td>${b.money.toFixed(2)}</td></tr>`;
         });
         this.governments.forEach(g => {
-            html += `<li>Government ID: ${g.id}, Money: ${g.money.toFixed(2)}</li>`;
+            html += `<tr><td>Government</td><td>${g.id}</td><td>${g.money.toFixed(2)}</td></tr>`;
         });
         this.utilityProviders.forEach(u => {
-            html += `<li>Utility Provider ID: ${u.id}, Money: ${u.money.toFixed(2)}</li>`;
+            html += `<tr><td>Utility Provider</td><td>${u.id}</td><td>${u.money.toFixed(2)}</td></tr>`;
         });
-        html += '</ul>';
-
+        html += '</tbody></table>';
 
         outputDiv.innerHTML = html;
         const summaryData = [
