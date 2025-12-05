@@ -3,27 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Economic Simulation</title>
+    <title>Economic Simulation KPI Panel</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>Economic Simulation</h1>
-    <div id="simulation-controls">
-        <button id="start-btn">Start</button>
-        <button id="pause-btn">Pause</button>
-        <button id="reset-btn">Reset</button>
+    <div class="kpi-panel-container">
+        <header class="panel-header">
+            <h1>Economic Simulation</h1>
+        </header>
+
+        <div class="panel-controls box">
+            <h2>Controls</h2>
+            <div id="simulation-controls">
+                <button id="start-btn">Start</button>
+                <button id="pause-btn">Pause</button>
+                <button id="reset-btn">Reset</button>
+            </div>
+        </div>
+
+        <div class="panel-parameters box">
+            <h2>Parameters</h2>
+            <div id="simulation-parameters">
+                <label for="num-citizens">Citizens:</label>
+                <input type="number" id="num-citizens" value="10">
+                <label for="num-companies">Companies:</label>
+                <input type="number" id="num-companies" value="2">
+                <label for="tax-rate">Tax Rate:</label>
+                <input type="number" id="tax-rate" value="0.1" step="0.01">
+            </div>
+        </div>
+
+        <div class="panel-summary box">
+            <h2>Summary</h2>
+            <div id="simulation-output"></div>
+        </div>
+
+        <div class="panel-graph box">
+            <h2>Summary Graph</h2>
+            <canvas id="summary-graph" width="400" height="200"></canvas>
+        </div>
+
+        <div class="panel-temporal-graph box">
+            <h2>Temporal Graph</h2>
+            <canvas id="temporal-graph" width="400" height="200"></canvas>
+        </div>
     </div>
-    <div id="simulation-parameters">
-        <label for="num-citizens">Number of Citizens:</label>
-        <input type="number" id="num-citizens" value="10">
-        <label for="num-companies">Number of Companies:</label>
-        <input type="number" id="num-companies" value="2">
-        <label for="tax-rate">Tax Rate:</label>
-        <input type="number" id="tax-rate" value="0.1" step="0.01">
-    </div>
-    <div id="simulation-output"></div>
-    <canvas id="summary-graph" width="400" height="200"></canvas>
-    <canvas id="temporal-graph" width="400" height="200"></canvas>
     <script src="js/simulation.js"></script>
 </body>
 </html>
