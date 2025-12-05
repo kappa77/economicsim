@@ -321,40 +321,28 @@ class Simulation {
         const outputDiv = document.getElementById('simulation-output');
         let html = `<h2>Turn: ${this.turn}</h2>`;
 
-        html += '<h3>Citizens</h3>';
-        html += '<table><thead><tr><th>ID</th><th>Money</th><th>Employer</th></tr></thead><tbody>';
-        this.citizens.forEach(c => {
-            html += `<tr><td>${c.id}</td><td>${c.money.toFixed(2)}</td><td>${c.employer ? c.employer.id : 'None'}</td></tr>`;
-        });
-        html += '</tbody></table>';
+        const citizenTotalMoney = this.citizens.reduce((sum, c) => sum + c.money, 0);
+        const companyTotalMoney = this.companies.reduce((sum, c) => sum + c.money, 0);
+        const bankTotalMoney = this.banks.reduce((sum, b) => sum + b.money, 0);
+        const governmentTotalMoney = this.governments.reduce((sum, g) => sum + g.money, 0);
+        const utilityTotalMoney = this.utilityProviders.reduce((sum, u) => sum + u.money, 0);
 
-        html += '<h3>Companies</h3>';
-        html += '<table><thead><tr><th>ID</th><th>Money</th><th>Employees</th><th>Inventory</th></tr></thead><tbody>';
-        this.companies.forEach(c => {
-            html += `<tr><td>${c.id}</td><td>${c.money.toFixed(2)}</td><td>${c.employees.length}</td><td>${c.inventory}</td></tr>`;
-        });
-        html += '</tbody></table>';
-
-        html += '<h3>Other Actors</h3>';
-        html += '<table><thead><tr><th>Actor</th><th>ID</th><th>Money</th></tr></thead><tbody>';
-        this.banks.forEach(b => {
-            html += `<tr><td>Bank</td><td>${b.id}</td><td>${b.money.toFixed(2)}</td></tr>`;
-        });
-        this.governments.forEach(g => {
-            html += `<tr><td>Government</td><td>${g.id}</td><td>${g.money.toFixed(2)}</td></tr>`;
-        });
-        this.utilityProviders.forEach(u => {
-            html += `<tr><td>Utility Provider</td><td>${u.id}</td><td>${u.money.toFixed(2)}</td></tr>`;
-        });
+        html += '<h3>Summary</h3>';
+        html += '<table><thead><tr><th>Category</th><th>Count</th><th>Total Money</th></tr></thead><tbody>';
+        html += `<tr><td>Citizens</td><td>${this.citizens.length}</td><td>${citizenTotalMoney.toFixed(2)}</td></tr>`;
+        html += `<tr><td>Companies</td><td>${this.companies.length}</td><td>${companyTotalMoney.toFixed(2)}</td></tr>`;
+        html += `<tr><td>Banks</td><td>${this.banks.length}</td><td>${bankTotalMoney.toFixed(2)}</td></tr>`;
+        html += `<tr><td>Governments</td><td>${this.governments.length}</td><td>${governmentTotalMoney.toFixed(2)}</td></tr>`;
+        html += `<tr><td>Utility Providers</td><td>${this.utilityProviders.length}</td><td>${utilityTotalMoney.toFixed(2)}</td></tr>`;
         html += '</tbody></table>';
 
         outputDiv.innerHTML = html;
         const summaryData = [
-            { label: 'Citizens', money: this.citizens.reduce((sum, c) => sum + c.money, 0) },
-            { label: 'Companies', money: this.companies.reduce((sum, c) => sum + c.money, 0) },
-            { label: 'Banks', money: this.banks.reduce((sum, b) => sum + b.money, 0) },
-            { label: 'Governments', money: this.governments.reduce((sum, g) => sum + g.money, 0) },
-            { label: 'Utilities', money: this.utilityProviders.reduce((sum, u) => sum + u.money, 0) }
+            { label: 'Citizens', money: citizenTotalMoney },
+            { label: 'Companies', money: companyTotalMoney },
+            { label: 'Banks', money: bankTotalMoney },
+            { label: 'Governments', money: governmentTotalMoney },
+            { label: 'Utilities', money: utilityTotalMoney }
         ];
         this.graphRenderer.updateSummaryGraph(summaryData);
         this.history.push(summaryData);
