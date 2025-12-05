@@ -101,6 +101,9 @@ class Government {
     }
 
     tax(actor, rate) {
+        if (actor instanceof Citizen && actor.money < 1.25) {
+            return;
+        }
         const taxAmount = actor.money * rate;
         if (actor.money >= taxAmount) {
             actor.money -= taxAmount;
@@ -191,6 +194,20 @@ class Simulation {
             const government = this.governments[0];
             this.citizens.forEach(c => government.tax(c, 0.1));
             this.companies.forEach(c => government.tax(c, 0.15));
+
+            const employedCitizens = this.citizens.filter(c => c.employer);
+            const totalSalary = employedCitizens.reduce((sum, c) => sum + c.salary, 0);
+            const averageSalary = employedCitizens.length > 0 ? totalSalary / employedCitizens.length : 0;
+
+            this.citizens.forEach(citizen => {
+                if (!citizen.employer) {
+                    const unemploymentBenefit = averageSalary * 0.8;
+                    if (government.money >= unemploymentBenefit) {
+                        government.money -= unemploymentBenefit;
+                        citizen.money += unemploymentBenefit;
+                    }
+                }
+            });
         }
         if(this.utilityProviders.length > 0){
             const utilityProvider = this.utilityProviders[0];
