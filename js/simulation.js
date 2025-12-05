@@ -141,7 +141,7 @@ class UtilityProvider {
     }
 }
 
-class GraphRenderer {
+class BarGraphRenderer {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
@@ -165,6 +165,49 @@ class GraphRenderer {
     }
 }
 
+class TemporalGraphRenderer {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+    }
+
+    updateTemporalGraph(history) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        if (history.length < 2) {
+            return;
+        }
+
+        const allMoney = history.flat().map(d => d.money);
+        const maxMoney = Math.max(...allMoney)  || 1;
+
+        const colors = ['blue', 'green', 'red', 'purple', 'orange'];
+        const labels = history[0].map(d => d.label);
+
+        for (let i = 0; i < labels.length; i++) {
+            this.ctx.strokeStyle = colors[i % colors.length];
+            this.ctx.beginPath();
+            for (let j = 0; j < history.length; j++) {
+                const x = (j / (history.length - 1)) * (this.canvas.width - 80);
+                const y = this.canvas.height - (history[j][i].money / maxMoney) * this.canvas.height;
+                if (j === 0) {
+                    this.ctx.moveTo(x, y);
+                } else {
+                    this.ctx.lineTo(x, y);
+                }
+            }
+            this.ctx.stroke();
+        }
+
+        for (let i = 0; i < labels.length; i++) {
+            this.ctx.fillStyle = colors[i % colors.length];
+            this.ctx.fillRect(this.canvas.width - 70, i * 20 + 10, 10, 10);
+            this.ctx.fillStyle = 'black';
+            this.ctx.fillText(labels[i], this.canvas.width - 55, i * 20 + 20);
+        }
+    }
+}
+
 class Simulation {
     constructor() {
         this.citizens = [];
@@ -174,7 +217,9 @@ class Simulation {
         this.utilityProviders = [];
         this.turn = 0;
         this.intervalId = null;
-        this.graphRenderer = new GraphRenderer('summary-graph');
+        this.graphRenderer = new BarGraphRenderer('summary-graph');
+        this.temporalGraphRenderer = new TemporalGraphRenderer('temporal-graph');
+        this.history = [];
 
         this._initializeActors();
         this.updateUI();
@@ -299,13 +344,16 @@ class Simulation {
 
 
         outputDiv.innerHTML = html;
-        this.graphRenderer.updateSummaryGraph([
+        const summaryData = [
             { label: 'Citizens', money: this.citizens.reduce((sum, c) => sum + c.money, 0) },
             { label: 'Companies', money: this.companies.reduce((sum, c) => sum + c.money, 0) },
             { label: 'Banks', money: this.banks.reduce((sum, b) => sum + b.money, 0) },
             { label: 'Governments', money: this.governments.reduce((sum, g) => sum + g.money, 0) },
             { label: 'Utilities', money: this.utilityProviders.reduce((sum, u) => sum + u.money, 0) }
-        ]);
+        ];
+        this.graphRenderer.updateSummaryGraph(summaryData);
+        this.history.push(summaryData);
+        this.temporalGraphRenderer.updateTemporalGraph(this.history);
     }
 
     start() {
@@ -325,7 +373,9 @@ class Simulation {
         this.pause();
         this._initializeActors();
         this.turn = 0;
+        this.history = [];
         this.updateUI();
+        this.temporalGraphRenderer.updateTemporalGraph(this.history);
     }
 }
 
