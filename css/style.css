@@ -30,7 +30,7 @@ body {
 .panel-header {
     grid-column: 1 / -1;
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
 }
 
 .box {
@@ -53,7 +53,7 @@ h1, h2 {
 }
 
 h1 {
-    font-size: 3em;
+    font-size: 2.5em;
     font-weight: 300;
     margin-bottom: 0;
     letter-spacing: 1px;
@@ -96,11 +96,11 @@ button {
     background-color: var(--primary-color);
     color: white;
     border: none;
-    padding: 15px 20px;
+    padding: 10px 15px;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
-    font-size: 1em;
+    font-size: 0.9em;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.8px;
