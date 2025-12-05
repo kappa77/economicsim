@@ -126,6 +126,30 @@ class UtilityProvider {
     }
 }
 
+class GraphRenderer {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+    }
+
+    updateSummaryGraph(summaryData) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        const maxMoney = Math.max(...summaryData.map(d => d.money));
+        const barWidth = this.canvas.width / summaryData.length;
+        const maxLog = Math.log(maxMoney + 1);
+
+        for (let i = 0; i < summaryData.length; i++) {
+            const barHeight = maxLog > 0 ? (Math.log(summaryData[i].money + 1) / maxLog) * (this.canvas.height - 20) : 0;
+            this.ctx.fillStyle = 'blue';
+            this.ctx.fillRect(i * barWidth + 5, this.canvas.height - barHeight - 20, barWidth - 10, barHeight);
+            this.ctx.fillStyle = 'black';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(summaryData[i].label, i * barWidth + barWidth / 2, this.canvas.height - 5);
+        }
+    }
+}
+
 class Simulation {
     constructor() {
         this.citizens = [];
@@ -135,6 +159,7 @@ class Simulation {
         this.utilityProviders = [];
         this.turn = 0;
         this.intervalId = null;
+        this.graphRenderer = new GraphRenderer('summary-graph');
 
         this._initializeActors();
         this.updateUI();
@@ -252,11 +277,18 @@ class Simulation {
 
 
         outputDiv.innerHTML = html;
+        this.graphRenderer.updateSummaryGraph([
+            { label: 'Citizens', money: this.citizens.reduce((sum, c) => sum + c.money, 0) },
+            { label: 'Companies', money: this.companies.reduce((sum, c) => sum + c.money, 0) },
+            { label: 'Banks', money: this.banks.reduce((sum, b) => sum + b.money, 0) },
+            { label: 'Governments', money: this.governments.reduce((sum, g) => sum + g.money, 0) },
+            { label: 'Utilities', money: this.utilityProviders.reduce((sum, u) => sum + u.money, 0) }
+        ]);
     }
 
     start() {
         if (!this.intervalId) {
-            this.intervalId = setInterval(() => this.runTurn(), 1000);
+            this.intervalId = setInterval(() => this.runTurn(), 100);
         }
     }
 
