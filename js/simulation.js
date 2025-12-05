@@ -23,12 +23,12 @@ class Citizen {
 }
 
 class Company {
-    constructor(id) {
+    constructor(id, price) {
         this.id = id;
         this.money = 10000;
         this.employees = [];
         this.inventory = 0;
-        this.price = 12;
+        this.price = price;
         this.money_in = 0;
         this.money_out = 0;
     }
@@ -239,12 +239,13 @@ class Simulation {
         const numCitizens = parseInt(document.getElementById('num-citizens').value, 10);
         const numCompanies = parseInt(document.getElementById('num-companies').value, 10);
         this.taxRate = parseFloat(document.getElementById('tax-rate').value);
+        const companyPrice = parseFloat(document.getElementById('company-price').value);
 
         for (let i = 0; i < numCitizens; i++) {
             this.citizens.push(new Citizen(i));
         }
         for (let i = 0; i < numCompanies; i++) {
-            this.companies.push(new Company(i));
+            this.companies.push(new Company(i, companyPrice));
         }
         this.banks.push(new Bank(0));
         this.governments.push(new Government(0));
@@ -268,26 +269,30 @@ class Simulation {
         this.companies.forEach(company => company.produce());
 
         // 3. Commercial
-        this.companies.forEach(company => company.paySalaries());
+        if (this.turn > 0 && this.turn % 30 === 0) {
+            this.companies.forEach(company => company.paySalaries());
+        }
 
-        this.citizens.forEach(citizen => {
-            if (this.companies.length > 0) {
-                // Citizen buys from a random company
-                const company = this.companies[Math.floor(Math.random() * this.companies.length)];
-                const amountSpent = citizen.consume(company.price);
-                if (amountSpent > 0) {
-                    company.sell(amountSpent);
+        if (this.turn > 0 && this.turn % 2 === 0) {
+            this.citizens.forEach(citizen => {
+                if (this.companies.length > 0) {
+                    // Citizen buys from a random company
+                    const company = this.companies[Math.floor(Math.random() * this.companies.length)];
+                    const amountSpent = citizen.consume(company.price);
+                    if (amountSpent > 0) {
+                        company.sell(amountSpent);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         // 4. Other actors
-        if(this.banks.length > 0) this.banks[0].collectInterest();
-        if(this.governments.length > 0) {
+        if (this.banks.length > 0) this.banks[0].collectInterest();
+        if (this.governments.length > 0) {
             const government = this.governments[0];
             this.citizens.forEach(c => government.tax(c, this.taxRate));
 
-            if (this.turn > 0 && this.turn % 10 === 0) {
+            if (this.turn > 0 && this.turn % 360 === 0) {
                 this.companies.forEach(c => {
                     government.tax_company(c, this.taxRate + 0.05);
                     c.money_in = 0;
@@ -309,9 +314,11 @@ class Simulation {
                 }
             });
         }
-        if(this.utilityProviders.length > 0){
+        if (this.utilityProviders.length > 0) {
             const utilityProvider = this.utilityProviders[0];
-            this.citizens.forEach(c => utilityProvider.charge(c, 20));
+            if (this.turn > 0 && this.turn % 30 === 0) {
+                this.citizens.forEach(c => utilityProvider.charge(c, 20));
+            }
             this.companies.forEach(c => utilityProvider.charge(c, 100));
         }
 
@@ -372,6 +379,11 @@ class Simulation {
         this.updateUI();
         this.temporalGraphRenderer.updateTemporalGraph(this.history);
     }
+
+    restart() {
+        this.reset();
+        this.start();
+    }
 }
 
 const simulation = new Simulation();
@@ -379,3 +391,4 @@ const simulation = new Simulation();
 document.getElementById('start-btn').addEventListener('click', () => simulation.start());
 document.getElementById('pause-btn').addEventListener('click', () => simulation.pause());
 document.getElementById('reset-btn').addEventListener('click', () => simulation.reset());
+document.getElementById('restart-btn').addEventListener('click', () => simulation.restart());
