@@ -29,6 +29,8 @@ class Company {
         this.employees = [];
         this.inventory = 0;
         this.price = 12;
+        this.money_in = 0;
+        this.money_out = 0;
     }
 
     hire(citizen) {
@@ -52,6 +54,7 @@ class Company {
             if (this.money >= employee.salary) {
                 this.money -= employee.salary;
                 employee.money += employee.salary;
+                this.money_out += employee.salary;
             }
         });
     }
@@ -60,6 +63,7 @@ class Company {
         if (this.inventory > 0) {
              this.inventory -= 1;
              this.money += amount;
+             this.money_in += amount;
              return amount;
         }
         return 0;
@@ -108,6 +112,17 @@ class Government {
         if (actor.money >= taxAmount) {
             actor.money -= taxAmount;
             this.money += taxAmount;
+        }
+    }
+
+    tax_company(company, rate) {
+        const profit = company.money_in - company.money_out;
+        if (profit > 0) {
+            const taxAmount = profit * rate;
+            if (company.money >= taxAmount) {
+                company.money -= taxAmount;
+                this.money += taxAmount;
+            }
         }
     }
 }
@@ -218,7 +233,14 @@ class Simulation {
         if(this.governments.length > 0) {
             const government = this.governments[0];
             this.citizens.forEach(c => government.tax(c, 0.1));
-            this.companies.forEach(c => government.tax(c, 0.15));
+
+            if (this.turn > 0 && this.turn % 10 === 0) {
+                this.companies.forEach(c => {
+                    government.tax_company(c, 0.15);
+                    c.money_in = 0;
+                    c.money_out = 0;
+                });
+            }
 
             const employedCitizens = this.citizens.filter(c => c.employer);
             const totalSalary = employedCitizens.reduce((sum, c) => sum + c.salary, 0);
