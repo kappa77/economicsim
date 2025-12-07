@@ -77,24 +77,35 @@ class Bank {
         this.loans = [];
     }
 
-    lend(actor, amount) {
+    lend(actor, amount, interestRate, repaymentPeriods) {
         if (this.money >= amount) {
             this.money -= amount;
             actor.money += amount;
-            this.loans.push({ actor, amount, interestRate: 0.05 });
+            this.loans.push({ actor, amount, interestRate, repaymentPeriods, remainingPeriods: repaymentPeriods });
             return true;
         }
         return false;
     }
 
     collectInterest() {
-        this.loans.forEach(loan => {
-            const interest = loan.amount * loan.interestRate;
-            if (loan.actor.money >= interest) {
-                loan.actor.money -= interest;
-                this.money += interest;
+        for (let i = this.loans.length - 1; i >= 0; i--) {
+            const loan = this.loans[i];
+            if (loan.remainingPeriods > 0) {
+                const interest = loan.amount * loan.interestRate;
+                const principal = loan.amount / loan.repaymentPeriods;
+                const totalPayment = interest + principal;
+
+                if (loan.actor.money >= totalPayment) {
+                    loan.actor.money -= totalPayment;
+                    this.money += totalPayment;
+                    loan.remainingPeriods--;
+                }
+
+                if (loan.remainingPeriods === 0) {
+                    this.loans.splice(i, 1);
+                }
             }
-        });
+        }
     }
 }
 
@@ -122,6 +133,15 @@ class Government {
             if (company.money >= taxAmount) {
                 company.money -= taxAmount;
                 this.money += taxAmount;
+            }
+        }
+    }
+
+    provideIncentive(citizen, lowerBound, amount) {
+        if (citizen.money < lowerBound) {
+            if (this.money >= amount) {
+                this.money -= amount;
+                citizen.money += amount;
             }
         }
     }
@@ -250,6 +270,12 @@ class Simulation {
         this.banks.push(new Bank(0));
         this.governments.push(new Government(0));
         this.utilityProviders.push(new UtilityProvider(0));
+
+        this.citizenIncentiveLowerBound = parseInt(document.getElementById('citizen-incentive-lower-bound').value, 10);
+        this.citizenIncentiveAmount = parseInt(document.getElementById('citizen-incentive-amount').value, 10);
+        this.loanInterestRate = parseFloat(document.getElementById('loan-interest-rate').value);
+        this.loanRepaymentPeriods = parseInt(document.getElementById('loan-repayment-periods').value, 10);
+        this.loanAmount = parseInt(document.getElementById('loan-amount').value, 10);
     }
 
     runTurn() {
@@ -261,7 +287,7 @@ class Simulation {
                 }
             });
             if(company.money < 1000 && this.banks.length > 0){
-                this.banks[0].lend(company, 5000);
+                this.banks[0].lend(company, this.loanAmount, this.loanInterestRate, this.loanRepaymentPeriods);
             }
         });
 
@@ -287,10 +313,14 @@ class Simulation {
         }
 
         // 4. Other actors
-        if (this.banks.length > 0) this.banks[0].collectInterest();
+        if (this.banks.length > 0 && this.turn > 0 && this.turn % 30 === 0) {
+            this.banks[0].collectInterest();
+        }
         if (this.governments.length > 0) {
             const government = this.governments[0];
             this.citizens.forEach(c => government.tax(c, this.taxRate));
+
+            this.citizens.forEach(c => government.provideIncentive(c, this.citizenIncentiveLowerBound, this.citizenIncentiveAmount));
 
             if (this.turn > 0 && this.turn % 360 === 0) {
                 this.companies.forEach(c => {
