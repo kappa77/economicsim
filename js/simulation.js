@@ -137,6 +137,14 @@ class Government {
         }
     }
 
+    tax_provider(provider, rate) {
+        const taxAmount = provider.money * rate;
+        if (provider.money >= taxAmount) {
+            provider.money -= taxAmount;
+            this.money += taxAmount;
+        }
+    }
+
     provideIncentive(citizen, lowerBound, amount) {
         if (citizen.money < lowerBound) {
             if (this.money >= amount) {
@@ -244,6 +252,7 @@ class Simulation {
         this.temporalGraphRenderer = new TemporalGraphRenderer('temporal-graph');
         this.history = [];
         this.taxRate = 0.1;
+        this.providerTaxRate = 0.05;
 
         this._initializeActors();
         this.updateUI();
@@ -259,6 +268,7 @@ class Simulation {
         const numCitizens = parseInt(document.getElementById('num-citizens').value, 10);
         const numCompanies = parseInt(document.getElementById('num-companies').value, 10);
         this.taxRate = parseFloat(document.getElementById('tax-rate').value);
+        this.providerTaxRate = parseFloat(document.getElementById('provider-tax-rate').value);
         const companyPrice = parseFloat(document.getElementById('company-price').value);
 
         for (let i = 0; i < numCitizens; i++) {
@@ -327,6 +337,11 @@ class Simulation {
                     government.tax_company(c, this.taxRate + 0.05);
                     c.money_in = 0;
                     c.money_out = 0;
+                });
+            }
+            if (this.turn > 0 && this.turn % 30 === 0) {
+                this.utilityProviders.forEach(p => {
+                    government.tax_provider(p, this.providerTaxRate);
                 });
             }
 
