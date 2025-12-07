@@ -138,10 +138,13 @@ class Government {
     }
 
     tax_provider(provider, rate) {
-        const taxAmount = provider.money * rate;
-        if (provider.money >= taxAmount) {
-            provider.money -= taxAmount;
-            this.money += taxAmount;
+        const profit = provider.money_in - provider.money_out;
+        if (profit > 0) {
+            const taxAmount = profit * rate;
+            if (provider.money >= taxAmount) {
+                provider.money -= taxAmount;
+                this.money += taxAmount;
+            }
         }
     }
 
@@ -159,12 +162,15 @@ class UtilityProvider {
     constructor(id) {
         this.id = id;
         this.money = 20000;
+        this.money_in = 0;
+        this.money_out = 0;
     }
 
     charge(actor, amount) {
         if (actor.money >= amount) {
             actor.money -= amount;
             this.money += amount;
+            this.money_in += amount;
         }
     }
 }
@@ -342,6 +348,8 @@ class Simulation {
             if (this.turn > 0 && this.turn % 30 === 0) {
                 this.utilityProviders.forEach(p => {
                     government.tax_provider(p, this.providerTaxRate);
+                    p.money_in = 0;
+                    p.money_out = 0;
                 });
             }
 
