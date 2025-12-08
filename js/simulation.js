@@ -239,7 +239,7 @@ class TemporalGraphRenderer {
         for (let i = 0; i < labels.length; i++) {
             this.ctx.fillStyle = colors[i % colors.length];
             this.ctx.fillRect(this.canvas.width - 70, i * 20 + 10, 10, 10);
-            this.ctx.fillStyle = 'black';
+            this.ctx.fillStyle = 'white';
             this.ctx.fillText(labels[i], this.canvas.width - 55, i * 20 + 20);
         }
     }
